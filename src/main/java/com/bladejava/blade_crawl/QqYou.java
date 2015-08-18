@@ -3,11 +3,12 @@ package com.bladejava.blade_crawl;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import blade.kit.FileKit;
+import blade.kit.PatternKit;
 import blade.kit.http.HttpRequest;
 import blade.kit.log.Logger;
 
@@ -20,24 +21,25 @@ public class QqYou {
 
 	private static final Logger LOGGER = Logger.getLogger(QqYou.class);
 	
-	private List<Map<String, Object>> images;
-	
 	private static final String site = "http://www.qqyou.com";
 	
-	private static final String homeUrl = site + "/touxiang/nvsheng/";
+	private static String type = "nansheng";
+	
+	private static String homeUrl = site + "/touxiang/" + type;
+	
+	private int imageCount = 0;
 	
 	public QqYou() {
 		if(!FileKit.isDirectory("avatar")){
 			FileKit.createDir("avatar");
 		}
-		images = new ArrayList<Map<String,Object>>();
 	}
 	
 	/**
 	 * 加载页面
 	 */
 	public String loadPage(int page){
-		return HttpRequest.get(homeUrl + "list"+ page +".html").acceptCharset("gb2312").body();
+		return HttpRequest.get(homeUrl + "list"+ page +".html").body();
 	}
 	
 	/**
@@ -58,6 +60,7 @@ public class QqYou {
 	 * 抓取图片主逻辑
 	 */
 	public void start(int page){
+		LOGGER.info("load url : " + homeUrl);
 		start(1, page);
 	}
 	
@@ -65,11 +68,16 @@ public class QqYou {
 		if (start_page < 1) {
 			start_page = 1;
 		}
-		
 		if (end_page < 1) {
 			end_page = 1;
 		}
 		
+		this.loadItems(start_page, end_page);
+		
+		return this;
+	}
+	
+	private void loadItems(int start_page, int end_page){
 		for(int page=start_page; page <= end_page; page++){
 			// 加载一页
 			String content = loadPage(page);
@@ -77,7 +85,6 @@ public class QqYou {
 			List<String> items = loadItems(content);
 			process(items);
 		}
-		return this;
 	}
 	
 	public void process(List<String> items){
@@ -96,6 +103,8 @@ public class QqYou {
 			
 			download(images);
 		}
+		
+		LOGGER.info(" 下载图片数量：" + imageCount);
 	}
 	
 	private void download(List<String> images) {
@@ -104,30 +113,41 @@ public class QqYou {
 			File output = new File("avatar/" + fileName);
 			HttpRequest.get(image).receive(output);
 			LOGGER.info(" 下载完成：" + fileName);
+			imageCount+=1;
 		}
 	}
 
-	/**
-	 * 下载图片
-	 */
-	public void download(){
-		if(images.size() > 0){
-			int count = 1;
-			for(Map<String, Object> map : images){
-				
-				String fileName = map.get("id") + "." + map.get("type");
-				
-				File output = new File("images/" + fileName);
-				
-				HttpRequest.get(map.get("url").toString()).receive(output);
-				LOGGER.info(count + " 下载完成：" + fileName);
-				count++;
+	@SuppressWarnings("resource")
+	private void init() {
+		System.out.println("请选择要下载的类型：");
+		System.out.println("1. 男生头像");
+		System.out.println("2. 女生头像");
+		System.out.println("3. 情侣头像");
+		System.out.println("4. 动漫头像");
+		System.out.print("请输入头像类型：");
+		int count = new Scanner(System.in).nextInt();
+		
+		switch (count) {
+			case 1: homeUrl = site + "/touxiang/nansheng/"; break;
+			case 2: homeUrl = site + "/touxiang/nvsheng/"; break;
+			case 3: homeUrl = site + "/touxiang/qinglv/"; break;
+			case 4: homeUrl = site + "/touxiang/katong/"; break;
+		}
+		System.out.print("请输入要下载多少页：");
+		String page = new Scanner(System.in).nextLine();
+		if(PatternKit.isNumber(page)){
+			// 抓取多少页图片并下载
+			this.start(Integer.valueOf(page));
+		} else {
+			if(page.indexOf(",") != -1){
+				String[] pageindex = page.split(",");
+				this.start(Integer.valueOf(pageindex[0]), Integer.valueOf(pageindex[1]));
 			}
 		}
 	}
 	
 	public static void main(String[] args) {
-		// 抓取多少页图片并下载
-		new QqYou().start(5);
+		new QqYou().init();
 	}
+	
 }

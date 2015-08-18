@@ -24,7 +24,7 @@ public class HuaBan {
 	
 	private List<Map<String, Object>> images;
 	
-	private static final String homeUrl = "http://huaban.com/favorite/photography/";
+	private static final String homeUrl = "http://huaban.com/favorite/photography";
 	
 	public HuaBan() {
 		if(!FileKit.isDirectory("images")){

@@ -4,3 +4,4 @@
 
 + HuaBan.java：爬取花瓣网图片的例子
 + QiuBai.java：爬取糗事百科段子
++ QqYou.java ：抓取Q友网头像

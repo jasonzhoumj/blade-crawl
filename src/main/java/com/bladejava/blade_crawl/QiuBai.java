@@ -11,7 +11,7 @@ import blade.kit.StringKit;
 import blade.kit.http.HttpRequest;
 
 /**
- * 抓取花瓣网的图片例子
+ * 抓取糗事百科段子
  * @version 
  * @since JDK 1.8
  */

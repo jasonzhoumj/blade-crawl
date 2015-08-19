@@ -13,7 +13,7 @@ import blade.kit.http.HttpRequest;
 import blade.kit.log.Logger;
 
 /**
- * 抓取花瓣网的图片例子
+ * 抓取Q友网头像
  * @version 
  * @since JDK 1.8
  */
